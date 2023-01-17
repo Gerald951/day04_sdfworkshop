@@ -1,11 +1,15 @@
 package sg.edu.nus.iss;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -42,6 +46,7 @@ public final class App {
         Cookie cookie = new Cookie();
         cookie.readCookieFile();
         cookie.showCookies();
+        cookie.returnCookie();
 
         ServerSocket ss = new ServerSocket(7000);
         Socket s = ss.accept(); //Establish connection and wait for accept
@@ -49,23 +54,36 @@ public final class App {
         try (InputStream is = s.getInputStream()) {
             BufferedInputStream bis = new BufferedInputStream(is);
             DataInputStream dis = new DataInputStream(bis);
-            String msgReceived = "";
+            String msgReceived = "", readInput = "";
+
+            try(OutputStream os = s.getOutputStream()) {
+                BufferedOutputStream bos = new BufferedOutputStream(os);
+                DataOutputStream dos = new DataOutputStream(bos);
             
-            while (!msgReceived.equals("close")) {
+            
+                while (!msgReceived.equals("close")) {
                 msgReceived = dis.readUTF();
 
-                if (msgReceived.equalsIgnoreCase("get-cookie")) {
+                    if (msgReceived.equalsIgnoreCase("get-cookie")) {
                     String cookieValue = cookie.returnCookie();
                     System.out.println(cookieValue);
+
+                    dos.writeUTF(cookieValue);
+                    dos.flush();
+                    }
                 }
+
+                dos.close();
+                bos.close();
+                os.close();
+
+            } catch (EOFException ex) {
+                s.close();
+                ss.close();
             }
-        } catch (EOFException ex) {
-            s.close();
-            ss.close();
+
+
+
         }
-
-
-
     }
-}
-        
+}        

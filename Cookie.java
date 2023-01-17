@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class Cookie {
-    String dirPath = "data2";
+    String dirPath = "\\data2";
     String fileName = "cookie.txt";
 
     List<String> cookieItems = null;
